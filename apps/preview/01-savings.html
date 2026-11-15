@@ -1,0 +1,168 @@
+<title>Calcolatore del risparmio</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: una colonna di input a sinistra, risultato fisso a destra; su telefono si impilano. */
+:root {
+  --bg: #f6f7f5;
+  --surface: #ffffff;
+  --fg: #1c2420;
+  --muted: #5d6a63;
+  --line: #d9dfdb;
+  --accent: #0f6b4f;
+  --accent-fg: #ffffff;
+  --good: #0f6b4f;
+  --bad: #b3322a;
+  --font-display: "Space Grotesk", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131815; --surface: #1b221e; --fg: #e8eeea; --muted: #9aa8a0; --line: #2f3a34;
+    --accent: #4cc39a; --accent-fg: #0c1511; --good: #4cc39a; --bad: #ef7a72;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131815; --surface: #1b221e; --fg: #e8eeea; --muted: #9aa8a0; --line: #2f3a34;
+  --accent: #4cc39a; --accent-fg: #0c1511; --good: #4cc39a; --bad: #ef7a72;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.5;
+  padding-block: 32px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 920px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+h1 { font-family: var(--font-display); font-size: 28px; line-height: 1.15; margin: 0; text-wrap: balance; }
+.lead { color: var(--muted); margin: 6px 0 0; max-width: 62ch; }
+.grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 720px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px; min-width: 0; }
+.panel h2 { font-family: var(--font-display); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 14px; }
+.fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 420px) { .fields { grid-template-columns: minmax(0, 1fr); } }
+label { display: flex; flex-direction: column; gap: 4px; font-weight: 500; min-width: 0; }
+label small { font-weight: 400; color: var(--muted); font-size: 12.5px; }
+input {
+  font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 6px;
+  padding: 9px 10px; width: 100%; font-variant-numeric: tabular-nums;
+}
+input:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sep { grid-column: 1 / -1; border-top: 1px solid var(--line); margin: 2px 0; }
+.big { font-family: var(--font-display); font-size: 40px; line-height: 1.05; font-variant-numeric: tabular-nums; margin: 0; overflow-wrap: anywhere; }
+.big.neg { color: var(--bad); }
+.big.pos { color: var(--good); }
+.rows { margin: 16px 0 0; display: flex; flex-direction: column; }
+.row { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-top: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.row dt { color: var(--muted); }
+.row dd { margin: 0; font-weight: 600; text-align: right; }
+.formula { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 13px; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; overflow-x: auto; white-space: nowrap; margin: 0 0 8px; }
+.note { color: var(--muted); font-size: 13px; margin: 0; }
+.msg { margin: 14px 0 0; font-size: 14px; }
+button { font: inherit; background: var(--accent); color: var(--accent-fg); border: 0; border-radius: 6px; padding: 8px 14px; cursor: pointer; font-weight: 600; margin-top: 14px; }
+footer { color: var(--muted); font-size: 12.5px; }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+
+<div class="wrap">
+  <header>
+    <h1>Calcolatore del risparmio</h1>
+    <p class="lead">Quanto vale automatizzare un processo ripetitivo? Inserisca i numeri della sua azienda: il risultato si aggiorna subito. I valori già presenti sono l'esempio del piano.</p>
+  </header>
+
+  <div class="grid">
+    <section class="panel" aria-labelledby="in">
+      <h2 id="in">Il processo</h2>
+      <div class="fields">
+        <label for="h">Ore per ripetizione <small>h</small>
+          <input id="h" type="number" inputmode="decimal" min="0" step="0.25" value="3"></label>
+        <label for="n">Ripetizioni a settimana <small>n</small>
+          <input id="n" type="number" inputmode="decimal" min="0" step="1" value="1"></label>
+        <label for="s">Settimane lavorate all'anno <small>s</small>
+          <input id="s" type="number" inputmode="decimal" min="0" max="52" step="1" value="48"></label>
+        <label for="c">Costo orario in € <small>c</small>
+          <input id="c" type="number" inputmode="decimal" min="0" step="1" value="25"></label>
+        <div class="sep"></div>
+        <label for="m">Manutenzione annua in € <small>m, costo del pacchetto di supporto</small>
+          <input id="m" type="number" inputmode="decimal" min="0" step="50" value="600"></label>
+        <label for="p">Prezzo del progetto in € <small>per il tempo di recupero</small>
+          <input id="p" type="number" inputmode="decimal" min="0" step="100" value="2500"></label>
+      </div>
+      <button id="reset" type="button">Riporta ai valori dell'esempio</button>
+    </section>
+
+    <section class="panel" aria-labelledby="out" aria-live="polite">
+      <h2 id="out">Risparmio annuo netto</h2>
+      <p class="big" id="net">-</p>
+      <dl class="rows">
+        <div class="row"><dt>Risparmio lordo</dt><dd id="gross">-</dd></div>
+        <div class="row"><dt>Ore recuperate all'anno</dt><dd id="hours">-</dd></div>
+        <div class="row"><dt>Tempo di recupero</dt><dd id="payback">-</dd></div>
+      </dl>
+      <p class="msg" id="msg"></p>
+    </section>
+  </div>
+
+  <section class="panel">
+    <h2>La formula</h2>
+    <p class="formula">Risparmio annuo = h × n × s × c − m</p>
+    <p class="note">Con 3 ore a settimana, 48 settimane e 25 € l'ora il risparmio lordo è 3.600 € l'anno, prima dei costi di manutenzione. La manutenzione e il prezzo del progetto qui sono ipotesi da sostituire con le offerte reali.</p>
+  </section>
+
+  <footer>Prima versione, passo 1 di 4. Stessa formula dell'API <code>POST /savings</code> nel repository.</footer>
+</div>
+
+<script>
+(function () {
+  var DEFAULTS = { h: 3, n: 1, s: 48, c: 25, m: 600, p: 2500 };
+  var ids = Object.keys(DEFAULTS);
+  var el = {};
+  ids.forEach(function (k) { el[k] = document.getElementById(k); });
+  var eur = new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
+  var num = new Intl.NumberFormat("it-IT", { maximumFractionDigits: 1 });
+
+  function val(k) {
+    var v = parseFloat(el[k].value);
+    return isFinite(v) && v >= 0 ? v : 0;
+  }
+
+  // Stessa logica di services/api/src/savings.ts
+  function calc(i) {
+    var gross = i.h * i.n * i.s * i.c;
+    var net = gross - i.m;
+    var payback = i.p > 0 && net > 0 ? Math.round((i.p / net) * 12 * 10) / 10 : null;
+    return { gross: gross, net: net, hours: i.h * i.n * i.s, payback: payback };
+  }
+
+  function render() {
+    var i = {};
+    ids.forEach(function (k) { i[k] = val(k); });
+    var r = calc(i);
+    var net = document.getElementById("net");
+    net.textContent = eur.format(r.net);
+    net.className = "big " + (r.net > 0 ? "pos" : r.net < 0 ? "neg" : "");
+    document.getElementById("gross").textContent = eur.format(r.gross);
+    document.getElementById("hours").textContent = num.format(r.hours) + " h";
+    document.getElementById("payback").textContent = r.payback === null ? "-" : num.format(r.payback) + " mesi";
+    var msg = document.getElementById("msg");
+    if (r.net <= 0) {
+      msg.textContent = "Con questi numeri l'automazione non si ripaga: il costo di manutenzione supera il tempo risparmiato.";
+    } else if (r.payback === null) {
+      msg.textContent = "Inserisca il prezzo del progetto per vedere in quanto tempo si recupera.";
+    } else if (r.payback <= 12) {
+      msg.textContent = "Il progetto si ripaga in meno di un anno.";
+    } else {
+      msg.textContent = "Il recupero richiede più di un anno: conviene valutare un intervento più piccolo.";
+    }
+  }
+
+  ids.forEach(function (k) { el[k].addEventListener("input", render); });
+  document.getElementById("reset").addEventListener("click", function () {
+    ids.forEach(function (k) { el[k].value = DEFAULTS[k]; });
+    render();
+  });
+  render();
+})();
+</script>
