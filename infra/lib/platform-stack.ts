@@ -13,6 +13,8 @@ import { HttpUserPoolAuthorizer } from "aws-cdk-lib/aws-apigatewayv2-authorizers
 
 export interface PlatformStackProps extends cdk.StackProps {
   stage: string;
+  /** ID del modello o inference profile Bedrock per l'intervista. Verificare la disponibilità nella regione. */
+  modelId: string;
 }
 
 /**
@@ -73,6 +75,26 @@ export class PlatformStack extends cdk.Stack {
     const savingsFn = new NodejsFunction(this, "SavingsFn", { ...fnDefaults, handler: "calculateSavingsHandler" });
     table.grantReadWriteData(savingsFn);
 
+    // Interviste: Bedrock + DynamoDB. Timeout più lungo per le chiamate al modello.
+    const interviewsFn = new NodejsFunction(this, "InterviewsFn", {
+      ...fnDefaults,
+      handler: "interviewsHandler",
+      timeout: cdk.Duration.seconds(30),
+      environment: { ...fnDefaults.environment, MODEL_ID: props.modelId },
+    });
+    table.grantReadWriteData(interviewsFn);
+    // Solo questa funzione può invocare i modelli. Gli inference profile UE instradano
+    // tra più regioni UE, quindi la risorsa non può essere limitata a una sola regione.
+    interviewsFn.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["bedrock:InvokeModel"],
+        resources: [
+          "arn:aws:bedrock:*::foundation-model/*",
+          `arn:aws:bedrock:*:${this.account}:inference-profile/*`,
+        ],
+      }),
+    );
+
     const api = new apigw.HttpApi(this, "Api", {
       corsPreflight: {
         allowMethods: [apigw.CorsHttpMethod.GET, apigw.CorsHttpMethod.POST, apigw.CorsHttpMethod.OPTIONS],
@@ -95,16 +117,15 @@ export class PlatformStack extends cdk.Stack {
       authorizer,
     });
 
-    // Predisposto per il passo successivo: permessi Bedrock in regione UE
-    new iam.ManagedPolicy(this, "BedrockInvokePolicy", {
-      description: "Invocazione modelli Bedrock (da collegare alle Lambda di analisi)",
-      statements: [
-        new iam.PolicyStatement({
-          actions: ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"],
-          resources: ["*"],
-        }),
-      ],
-    });
+    const interviewsInt = new HttpLambdaIntegration("InterviewsInt", interviewsFn);
+    for (const [method, route] of [
+      [apigw.HttpMethod.POST, "/interviews"],
+      [apigw.HttpMethod.GET, "/interviews/{id}"],
+      [apigw.HttpMethod.POST, "/interviews/{id}/answers"],
+      [apigw.HttpMethod.POST, "/interviews/{id}/finalize"],
+    ] as const) {
+      api.addRoutes({ path: route, methods: [method], integration: interviewsInt, authorizer });
+    }
 
     new cdk.CfnOutput(this, "ApiUrl", { value: api.apiEndpoint });
     new cdk.CfnOutput(this, "UserPoolId", { value: userPool.userPoolId });

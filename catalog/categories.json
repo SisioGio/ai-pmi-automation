@@ -1,0 +1,9 @@
+[
+  { "id": "amministrazione-fatturazione", "nome": "Amministrazione e fatturazione", "problema": "Inserimento manuale di fatture, ricevute e scadenze", "esempio": "Lettura automatica dei documenti e invio al gestionale" },
+  { "id": "vendite-crm", "nome": "Vendite e CRM", "problema": "Contatti e preventivi sparsi tra email e fogli di calcolo", "esempio": "CRM semplice con promemoria e preventivi automatici" },
+  { "id": "ordini-magazzino", "nome": "Ordini e magazzino", "problema": "Aggiornamento a mano di scorte e ordini tra più canali", "esempio": "Sincronizzazione ordini, scorte e spedizioni" },
+  { "id": "assistenza-clienti", "nome": "Assistenza clienti", "problema": "Domande ripetitive via email e telefono", "esempio": "Risposte guidate e smistamento automatico delle richieste" },
+  { "id": "prenotazioni-appuntamenti", "nome": "Prenotazioni e appuntamenti", "problema": "Agenda gestita a mano, disdette e no-show", "esempio": "Prenotazione online con conferme e promemoria" },
+  { "id": "report-controllo", "nome": "Report e controllo", "problema": "Dati da più fonti riuniti a mano ogni mese", "esempio": "Cruscotto con dati aggiornati in automatico" },
+  { "id": "personale-presenze", "nome": "Personale e presenze", "problema": "Fogli presenze e turni compilati a mano", "esempio": "Raccolta presenze e turni con esportazione per il consulente" }
+]

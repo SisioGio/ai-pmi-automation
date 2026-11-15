@@ -1,8 +1,9 @@
 # MVP backlog
 
 ## Ambito
-- [ ] Intervista guidata (anche vocale) che produce un brief strutturato
-- [ ] Classificazione in categorie e collegamento al catalogo
+- [x] Intervista guidata testuale che produce un brief strutturato (API pronta, da provare su Bedrock reale)
+- [ ] Intervista vocale (Amazon Transcribe)
+- [x] Classificazione in categorie (collegamento a esempi simili ancora da fare)
 - [ ] Calcolo del risparmio con ore e costi del cliente
 - [ ] Report PDF con mappa dei processi e interventi proposti
 - [ ] Revisione manuale del team prima dell'invio

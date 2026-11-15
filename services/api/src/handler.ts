@@ -1,4 +1,7 @@
 import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
+import { BedrockProvider } from "./llm/bedrock.js";
+import { createInterviewsApi } from "./interviews-api.js";
+import { DynamoInterviewStore } from "./store.js";
 import { calculateSavings, type SavingsInput } from "./savings.js";
 
 const json = (statusCode: number, body: unknown): APIGatewayProxyResultV2 => ({
@@ -19,4 +22,15 @@ export async function calculateSavingsHandler(event: APIGatewayProxyEventV2): Pr
 
 export async function healthHandler(): Promise<APIGatewayProxyResultV2> {
   return json(200, { status: "ok" });
+}
+
+// --- Interviste (Bedrock + DynamoDB), inizializzate una volta per container ---
+
+let interviews: ReturnType<typeof createInterviewsApi> | undefined;
+export async function interviewsHandler(event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> {
+  interviews ??= createInterviewsApi({
+    llm: new BedrockProvider(process.env.MODEL_ID!),
+    store: new DynamoInterviewStore(process.env.TABLE_NAME!),
+  });
+  return interviews(event);
 }

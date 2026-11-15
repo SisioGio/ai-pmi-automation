@@ -22,11 +22,13 @@ Vedi [docs/mvp-backlog.md](docs/mvp-backlog.md). Obiettivo: i titolari pagano pe
 
 Stack: AWS (CDK TypeScript, Cognito, API Gateway + Lambda, DynamoDB, S3, Bedrock). Vedi [docs/decisions/0001-stack.md](docs/decisions/0001-stack.md).
 
+API: vedi [docs/api.md](docs/api.md).
+
 ## Sviluppo
 
 ```bash
 npm install
-npm test            # test del calcolo del risparmio
+npm test            # test (calcolo risparmio, intervista)
 npm run typecheck
 cd infra && npx cdk synth -c stage=dev
 ```

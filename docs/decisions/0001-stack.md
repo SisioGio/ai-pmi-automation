@@ -11,7 +11,7 @@ Solo risorse AWS, in regione UE (`eu-central-1`, alternativa `eu-south-1`), infr
 | API | API Gateway HTTP + Lambda (Node.js 22, TypeScript) |
 | Dati | DynamoDB (pk/sk), cifrato, point-in-time recovery |
 | File | S3 privato, cifrato, versionato (audio, PDF) |
-| LLM | Amazon Bedrock (provider intercambiabili) - da collegare |
+| LLM | Amazon Bedrock via API Converse, dietro l'interfaccia `LlmProvider` (intervista collegata) |
 | Trascrizione | Amazon Transcribe - da collegare |
 | Modelli locali / dati sensibili | SageMaker o EC2 nell'account del cliente - da valutare |
 | Frontend | S3 + CloudFront - da aggiungere |
