@@ -33,4 +33,4 @@ npm run typecheck
 cd infra && npx cdk synth -c stage=dev
 ```
 
-Deploy: workflow GitHub Actions `Deploy` (manuale). Richiede il secret `AWS_DEPLOY_ROLE_ARN` (ruolo IAM con trust OIDC verso questo repo) in ogni GitHub Environment (`dev`, `prod`).
+Deploy: workflow GitHub Actions `Deploy` (manuale). Richiede il secret `AWS_DEPLOY_ROLE_ARN` in ogni GitHub Environment (`dev`, `prod`). Il ruolo si crea con `infra/bootstrap/github-oidc.yaml`; i passi completi sono nella checklist di deploy (vedi `apps/preview/README.md`).

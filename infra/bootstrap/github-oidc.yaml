@@ -1,0 +1,78 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  Ruolo IAM per il deploy da GitHub Actions (OIDC, nessuna chiave salvata).
+  Il ruolo puo' solo assumere i ruoli di bootstrap di AWS CDK: e' CDK a creare le risorse.
+  Da eseguire una sola volta per account.
+
+Parameters:
+  GitHubOwner:
+    Type: String
+    Default: SisioGio
+  GitHubRepo:
+    Type: String
+    Default: ai-pmi-automation
+  DevEnvironment:
+    Type: String
+    Default: dev
+    Description: Nome del primo GitHub Environment autorizzato al deploy
+  ProdEnvironment:
+    Type: String
+    Default: prod
+    Description: Nome del secondo GitHub Environment autorizzato al deploy
+  CreateOidcProvider:
+    Type: String
+    AllowedValues: ["true", "false"]
+    Default: "true"
+    Description: Mettere "false" se nell'account esiste gia' il provider token.actions.githubusercontent.com
+  CdkQualifier:
+    Type: String
+    Default: hnb659fds
+    Description: Qualifier del bootstrap CDK (default di CDK)
+
+Conditions:
+  MakeProvider: !Equals [!Ref CreateOidcProvider, "true"]
+
+Resources:
+  GitHubOidcProvider:
+    Type: AWS::IAM::OIDCProvider
+    Condition: MakeProvider
+    Properties:
+      Url: https://token.actions.githubusercontent.com
+      ClientIdList: [sts.amazonaws.com]
+
+  DeployRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ai-pmi-github-deploy
+      MaxSessionDuration: 3600
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRoleWithWebIdentity
+            Principal:
+              Federated: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:oidc-provider/token.actions.githubusercontent.com
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: sts.amazonaws.com
+              # Solo questo repository, e solo i job che usano gli Environments indicati
+              StringLike:
+                token.actions.githubusercontent.com:sub:
+                  - !Sub "repo:${GitHubOwner}/${GitHubRepo}:environment:${DevEnvironment}"
+                  - !Sub "repo:${GitHubOwner}/${GitHubRepo}:environment:${ProdEnvironment}"
+      Policies:
+        - PolicyName: AssumeCdkBootstrapRoles
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: sts:AssumeRole
+                Resource: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-${CdkQualifier}-*-${AWS::AccountId}-*
+              - Effect: Allow
+                Action: cloudformation:DescribeStacks
+                Resource: !Sub arn:${AWS::Partition}:cloudformation:*:${AWS::AccountId}:stack/AiPmi-*/*
+
+Outputs:
+  DeployRoleArn:
+    Description: Da salvare come secret AWS_DEPLOY_ROLE_ARN negli Environments GitHub
+    Value: !GetAtt DeployRole.Arn

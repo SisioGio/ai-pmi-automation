@@ -1,0 +1,137 @@
+<title>Checklist di deploy</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: un campo in alto (ID account), poi sette passi con comando da copiare. */
+:root {
+  --bg: #f6f7f5; --surface: #ffffff; --fg: #1c2420; --muted: #5d6a63; --line: #d9dfdb;
+  --accent: #0f6b4f; --accent-fg: #ffffff; --soft: #e8efeb; --code-bg: #eef1ee; --bad: #b3322a;
+  --font-display: "Space Grotesk", system-ui, sans-serif; --font-body: "Inter", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131815; --surface: #1b221e; --fg: #e8eeea; --muted: #9aa8a0; --line: #2f3a34;
+    --accent: #4cc39a; --accent-fg: #0c1511; --soft: #26302b; --code-bg: #101512; --bad: #ef7a72; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131815; --surface: #1b221e; --fg: #e8eeea; --muted: #9aa8a0; --line: #2f3a34;
+  --accent: #4cc39a; --accent-fg: #0c1511; --soft: #26302b; --code-bg: #101512; --bad: #ef7a72; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.5;
+  padding-block: 32px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+h1 { font-family: var(--font-display); font-size: 28px; line-height: 1.15; margin: 0; text-wrap: balance; }
+.lead { color: var(--muted); margin: 6px 0 0; max-width: 64ch; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; min-width: 0; }
+.top { display: flex; gap: 16px; align-items: end; flex-wrap: wrap; }
+.top label { display: flex; flex-direction: column; gap: 4px; font-weight: 500; flex: 1 1 220px; }
+.top small { color: var(--muted); font-weight: 400; }
+input[type=text] { font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 9px 10px; width: 100%; font-variant-numeric: tabular-nums; }
+input[aria-invalid=true] { border-color: var(--bad); }
+.count { font-family: var(--font-display); font-size: 22px; font-variant-numeric: tabular-nums; }
+.step { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 12px; }
+.step input[type=checkbox] { width: 20px; height: 20px; margin: 3px 0 0; accent-color: var(--accent); }
+.step h2 { font-family: var(--font-display); font-size: 17px; margin: 0; }
+.step.done h2 { text-decoration: line-through; color: var(--muted); }
+.step p { margin: 4px 0 0; color: var(--muted); }
+.step .body { grid-column: 2; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.cmd { display: flex; gap: 8px; align-items: flex-start; }
+pre { flex: 1; min-width: 0; margin: 0; background: var(--code-bg); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; overflow-x: auto; font-size: 13px; line-height: 1.45; font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+button { font: inherit; font-size: 13px; background: var(--soft); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 6px 11px; cursor: pointer; font-weight: 600; white-space: nowrap; }
+button.ok { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+input:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tag { font-size: 12px; font-weight: 600; background: var(--soft); border-radius: 999px; padding: 1px 9px; margin-left: 8px; color: var(--muted); vertical-align: middle; }
+footer { color: var(--muted); font-size: 12.5px; }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+
+<div class="wrap">
+  <header>
+    <h1>Checklist di deploy</h1>
+    <p class="lead">Sette passi per mettere online l'API su AWS. I primi quattro si fanno una volta sola; poi il deploy parte da GitHub con un clic. Nessuna chiave AWS viene salvata in GitHub.</p>
+  </header>
+
+  <section class="panel top">
+    <label for="acct">ID account AWS <small>12 cifre, serve per riempire i comandi</small>
+      <input id="acct" type="text" inputmode="numeric" maxlength="12" placeholder="123456789012" autocomplete="off"></label>
+    <label for="reg">Regione <small>dati in UE</small>
+      <input id="reg" type="text" value="eu-central-1" autocomplete="off"></label>
+    <div><div class="count" id="count">0 / 7</div><small style="color:var(--muted)">passi completati</small></div>
+  </section>
+
+  <div id="steps" style="display:flex;flex-direction:column;gap:16px"></div>
+
+  <footer>Passo 5 di 5 delle anteprime. Il template del ruolo è <code>infra/bootstrap/github-oidc.yaml</code>. Le spunte restano solo in questo browser.</footer>
+</div>
+
+<script>
+(function () {
+  var STEPS = [
+    { t: "Installare gli strumenti", tag: "una volta",
+      d: "Servono Node 22, AWS CLI v2 e un accesso amministratore all'account AWS (per questi primi passi).",
+      c: ["git clone https://github.com/SisioGio/ai-pmi-automation && cd ai-pmi-automation", "npm install", "aws sts get-caller-identity"] },
+    { t: "Preparare l'account per AWS CDK", tag: "una volta",
+      d: "Crea i ruoli e il bucket che CDK usa per pubblicare lo stack.",
+      c: ["cd infra && npx cdk bootstrap aws://{ACCT}/{REG}"] },
+    { t: "Creare il ruolo di deploy per GitHub", tag: "una volta",
+      d: "Il ruolo può solo assumere i ruoli di CDK e solo da questo repository, per gli Environments dev e prod. Se l'account ha già il provider GitHub, aggiunga CreateOidcProvider=false.",
+      c: ["aws cloudformation deploy --template-file infra/bootstrap/github-oidc.yaml --stack-name ai-pmi-github-oidc --capabilities CAPABILITY_NAMED_IAM --region {REG}",
+          "aws cloudformation describe-stacks --stack-name ai-pmi-github-oidc --region {REG} --query \"Stacks[0].Outputs[0].OutputValue\" --output text"] },
+    { t: "Configurare GitHub", tag: "una volta",
+      d: "Nel repository: Settings, Environments. Crei due Environments, dev e prod. In ciascuno aggiunga il secret AWS_DEPLOY_ROLE_ARN con l'ARN stampato dal passo precedente (arn:aws:iam::{ACCT}:role/ai-pmi-github-deploy). Per prod conviene richiedere un'approvazione." },
+    { t: "Abilitare il modello su Amazon Bedrock", tag: "una volta",
+      d: "Nella console AWS, regione {REG}: Bedrock, Model access. Richieda l'accesso al modello Claude usato per l'intervista. Il default è eu.anthropic.claude-sonnet-4-5-20250929-v1:0; se è diverso, lo indichi al deploy con -c modelId=<id>. Controlli prima che il modello sia disponibile in questa regione." },
+    { t: "Avviare il deploy", tag: "da GitHub",
+      d: "Actions, workflow Deploy, Run workflow, stage dev. Al termine il log mostra ApiUrl, UserPoolId e UserPoolClientId: li annoti." },
+    { t: "Creare un utente e provare l'API", tag: "verifica",
+      d: "Sostituisca i valori tra < >. Il primo comando non richiede login; l'utente serve per le rotte protette.",
+      c: ["curl <ApiUrl>/health",
+          "aws cognito-idp admin-create-user --user-pool-id <UserPoolId> --username <email> --region {REG}"] }
+  ];
+
+  var acct = document.getElementById("acct"), reg = document.getElementById("reg"), host = document.getElementById("steps"), count = document.getElementById("count");
+  var done = {};
+  function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+  try { done = JSON.parse(store("deploy-done") || "{}") || {}; } catch (e) { done = {}; }
+  var savedAcct = store("deploy-acct"); if (savedAcct) acct.value = savedAcct;
+
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function fill(s) {
+    var a = /^\d{12}$/.test(acct.value.trim()) ? acct.value.trim() : "<ID-ACCOUNT>";
+    return s.replace(/\{ACCT\}/g, a).replace(/\{REG\}/g, reg.value.trim() || "eu-central-1");
+  }
+
+  function render() {
+    var valid = !acct.value || /^\d{12}$/.test(acct.value.trim());
+    acct.setAttribute("aria-invalid", valid ? "false" : "true");
+    host.innerHTML = STEPS.map(function (s, i) {
+      var cmds = (s.c || []).map(function (c, j) {
+        return '<div class="cmd"><pre>' + esc(fill(c)) + '</pre><button type="button" data-i="' + i + '" data-j="' + j + '">Copia</button></div>';
+      }).join("");
+      return '<section class="panel step' + (done[i] ? " done" : "") + '"><input type="checkbox" id="s' + i + '" data-i="' + i + '"' + (done[i] ? " checked" : "") + ' aria-labelledby="h' + i + '">' +
+        '<h2 id="h' + i + '">' + (i + 1) + '. ' + esc(s.t) + '<span class="tag">' + esc(s.tag) + '</span></h2>' +
+        '<div class="body"><p>' + esc(fill(s.d)) + '</p>' + cmds + '</div></section>';
+    }).join("");
+    count.textContent = Object.keys(done).filter(function (k) { return done[k]; }).length + " / " + STEPS.length;
+  }
+
+  host.addEventListener("change", function (e) {
+    var i = e.target.dataset && e.target.dataset.i; if (i === undefined || e.target.type !== "checkbox") return;
+    done[i] = e.target.checked; store("deploy-done", JSON.stringify(done)); render();
+  });
+  host.addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    var text = fill(STEPS[+b.dataset.i].c[+b.dataset.j]), pre = b.previousElementSibling;
+    function ok() { b.textContent = "Copiato"; b.classList.add("ok"); setTimeout(function () { b.textContent = "Copia"; b.classList.remove("ok"); }, 1500); }
+    function fallback() { var r = document.createRange(); r.selectNodeContents(pre); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = "Selezionato"; }
+    try { navigator.clipboard.writeText(text).then(ok, fallback); } catch (err) { fallback(); }
+  });
+  acct.addEventListener("input", function () { if (/^\d{12}$/.test(acct.value.trim())) store("deploy-acct", acct.value.trim()); render(); });
+  reg.addEventListener("input", render);
+  render();
+})();
+</script>
