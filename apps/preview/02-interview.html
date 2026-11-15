@@ -1,0 +1,180 @@
+<title>Intervista guidata</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: conversazione a sinistra, brief strutturato a destra; su telefono si impilano. */
+:root {
+  --bg: #f6f7f5; --surface: #ffffff; --fg: #1c2420; --muted: #5d6a63; --line: #d9dfdb;
+  --accent: #0f6b4f; --accent-fg: #ffffff; --bubble-q: #e8efeb; --bubble-a: #0f6b4f; --bubble-a-fg: #ffffff;
+  --warn: #8a5a00; --warn-bg: #fff4d6;
+  --font-display: "Space Grotesk", system-ui, sans-serif; --font-body: "Inter", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131815; --surface: #1b221e; --fg: #e8eeea; --muted: #9aa8a0; --line: #2f3a34;
+    --accent: #4cc39a; --accent-fg: #0c1511; --bubble-q: #26302b; --bubble-a: #4cc39a; --bubble-a-fg: #0c1511;
+    --warn: #f0c35c; --warn-bg: #3a2f10; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131815; --surface: #1b221e; --fg: #e8eeea; --muted: #9aa8a0; --line: #2f3a34;
+  --accent: #4cc39a; --accent-fg: #0c1511; --bubble-q: #26302b; --bubble-a: #4cc39a; --bubble-a-fg: #0c1511;
+  --warn: #f0c35c; --warn-bg: #3a2f10; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.5;
+  padding-block: 32px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 980px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+h1 { font-family: var(--font-display); font-size: 28px; line-height: 1.15; margin: 0; text-wrap: balance; }
+.lead { color: var(--muted); margin: 6px 0 0; max-width: 64ch; }
+.sim { background: var(--warn-bg); color: var(--warn); border-radius: 8px; padding: 10px 14px; font-size: 13.5px; }
+.grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 760px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px; min-width: 0; }
+.panel h2 { font-family: var(--font-display); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 14px; }
+.chat { display: flex; flex-direction: column; gap: 10px; max-height: 420px; overflow-y: auto; padding-right: 4px; }
+.b { max-width: 86%; padding: 9px 13px; border-radius: 12px; overflow-wrap: anywhere; }
+.b.q { background: var(--bubble-q); align-self: flex-start; border-bottom-left-radius: 3px; }
+.b.a { background: var(--bubble-a); color: var(--bubble-a-fg); align-self: flex-end; border-bottom-right-radius: 3px; }
+form { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+textarea { font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 9px 10px; width: 100%; min-height: 64px; resize: vertical; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+button { font: inherit; background: var(--accent); color: var(--accent-fg); border: 0; border-radius: 6px; padding: 8px 14px; cursor: pointer; font-weight: 600; }
+button.ghost { background: transparent; color: var(--accent); border: 1px solid var(--line); }
+button:disabled { opacity: .5; cursor: default; }
+input:focus-visible, textarea:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.progress { color: var(--muted); font-size: 13px; margin-left: auto; font-variant-numeric: tabular-nums; }
+.empty { color: var(--muted); margin: 0; }
+.tag { display: inline-block; font-size: 12.5px; background: var(--bubble-q); border-radius: 999px; padding: 2px 10px; margin: 2px 4px 2px 0; }
+dl.kv { margin: 0 0 14px; }
+dl.kv dt { font-size: 12.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-top: 10px; }
+dl.kv dd { margin: 2px 0 0; }
+ul { margin: 4px 0 0; padding-left: 18px; }
+.proc { border-top: 1px solid var(--line); padding-top: 12px; margin-top: 12px; }
+.proc h3 { font-family: var(--font-display); font-size: 16px; margin: 0 0 4px; }
+.save { margin-top: 14px; padding: 12px 14px; border-radius: 8px; background: var(--bubble-q); font-variant-numeric: tabular-nums; }
+footer { color: var(--muted); font-size: 12.5px; }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+
+<div class="wrap">
+  <header>
+    <h1>Intervista guidata</h1>
+    <p class="lead">Il titolare risponde a poche domande semplici, una alla volta. Alla fine il sistema le trasforma in un brief ordinato: processo, passaggi, strumenti, ore e categoria.</p>
+  </header>
+  <div class="sim">Simulazione: le domande e il brief sono preparati in anticipo, nessun modello AI viene chiamato. Serve a vedere il percorso. La versione reale usa l'API <code>/interviews</code>.</div>
+
+  <div class="grid">
+    <section class="panel" aria-labelledby="t1">
+      <h2 id="t1">Conversazione</h2>
+      <div class="chat" id="chat" aria-live="polite"></div>
+      <form id="form">
+        <label for="ans" class="empty" id="lab">La risposta di esempio è già scritta: può modificarla o inviarla così.</label>
+        <textarea id="ans"></textarea>
+        <div class="actions">
+          <button type="submit" id="send">Invia risposta</button>
+          <button type="button" class="ghost" id="restart">Ricomincia</button>
+          <span class="progress" id="prog"></span>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel" aria-labelledby="t2">
+      <h2 id="t2">Brief generato</h2>
+      <p class="empty" id="brief-empty">Il brief compare quando l'intervista è finita.</p>
+      <div id="brief" hidden></div>
+    </section>
+  </div>
+
+  <footer>Passo 2 di 4. Categorie dal catalogo <code>catalog/categories.json</code>.</footer>
+</div>
+
+<script>
+(function () {
+  // Conversazione d'esempio: studio di consulenza con fatture da registrare a mano.
+  var SCRIPT = [
+    { q: "Buongiorno! Per iniziare: qual è l'attività che nella sua azienda occupa più tempo a mano, ogni settimana?",
+      a: "Registrare le fatture dei fornitori nel gestionale. Le riceviamo quasi tutte per email." },
+    { q: "Come funziona oggi, passo per passo?",
+      a: "Scarico il PDF dall'email, lo apro, ricopio fornitore, data, importo e IVA nel gestionale, poi archivio il file in una cartella." },
+    { q: "Quante ore ci mette per ogni giornata di registrazione, e quante volte a settimana?",
+      a: "Circa 3 ore, una volta a settimana, di solito il venerdì." },
+    { q: "Capita di sbagliare o di dover rifare qualcosa?",
+      a: "Sì, ogni tanto un importo sbagliato o una fattura doppia. Il commercialista ce lo segnala a fine mese." },
+    { q: "Grazie, ho tutte le informazioni che servono.", a: null, done: true }
+  ];
+
+  var BRIEF = {
+    summary: "Registrazione manuale settimanale delle fatture fornitori ricevute via email, con errori occasionali e doppioni.",
+    category: "Amministrazione e fatturazione",
+    process: {
+      name: "Registrazione fatture fornitori",
+      steps: ["Scaricare il PDF dall'email", "Ricopiare fornitore, data, importo e IVA nel gestionale", "Archiviare il file in cartella"],
+      tools: ["Email", "Gestionale", "Cartelle condivise"],
+      hoursPerRun: 3, runsPerWeek: 1,
+      pain: ["Importi sbagliati", "Fatture registrate due volte", "Errori scoperti solo a fine mese"]
+    },
+    missing: ["Quante fatture a settimana", "Quale gestionale e se ha un'API", "Costo orario di chi registra"]
+  };
+
+  var chat = document.getElementById("chat"), ans = document.getElementById("ans"),
+      send = document.getElementById("send"), prog = document.getElementById("prog"),
+      form = document.getElementById("form"), lab = document.getElementById("lab");
+  var step = 0;
+
+  function bubble(kind, text) {
+    var d = document.createElement("div");
+    d.className = "b " + kind; d.textContent = text; chat.appendChild(d);
+    chat.scrollTop = chat.scrollHeight;
+  }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function list(a) { return "<ul>" + a.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>"; }
+
+  function showBrief() {
+    var p = BRIEF.process, eur = new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
+    var gross = p.hoursPerRun * p.runsPerWeek * 48 * 25;
+    document.getElementById("brief-empty").hidden = true;
+    var b = document.getElementById("brief"); b.hidden = false;
+    b.innerHTML =
+      '<dl class="kv"><dt>Riassunto</dt><dd>' + esc(BRIEF.summary) + '</dd>' +
+      '<dt>Categoria</dt><dd><span class="tag">' + esc(BRIEF.category) + '</span></dd></dl>' +
+      '<div class="proc"><h3>' + esc(p.name) + '</h3>' +
+      '<dl class="kv"><dt>Passaggi</dt><dd>' + list(p.steps) + '</dd>' +
+      '<dt>Strumenti</dt><dd>' + p.tools.map(function (t) { return '<span class="tag">' + esc(t) + '</span>'; }).join("") + '</dd>' +
+      '<dt>Tempo</dt><dd>' + p.hoursPerRun + ' ore, ' + p.runsPerWeek + ' volta a settimana</dd>' +
+      '<dt>Problemi</dt><dd>' + list(p.pain) + '</dd></dl></div>' +
+      '<div class="proc"><dl class="kv"><dt>Da chiedere al cliente</dt><dd>' + list(BRIEF.missing) + '</dd></dl></div>' +
+      '<div class="save">Stima rapida: ' + p.hoursPerRun + ' h × ' + p.runsPerWeek + ' × 48 settimane × 25 €/h = <strong>' + eur.format(gross) +
+      '</strong> l\'anno, prima della manutenzione. Costo orario e settimane sono valori di esempio.</div>';
+  }
+
+  function ask() {
+    var s = SCRIPT[step];
+    bubble("q", s.q);
+    if (s.done) {
+      form.hidden = false; ans.hidden = true; lab.hidden = true; send.hidden = true;
+      prog.textContent = "Intervista conclusa";
+      showBrief();
+      return;
+    }
+    ans.hidden = false; lab.hidden = false; send.hidden = false; send.disabled = false;
+    ans.value = s.a; ans.focus({ preventScroll: true });
+    prog.textContent = "Domanda " + (step + 1) + " di " + (SCRIPT.length - 1);
+  }
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var text = ans.value.trim();
+    if (!text) return;
+    bubble("a", text); step++; ask();
+  });
+  document.getElementById("restart").addEventListener("click", function () {
+    chat.innerHTML = ""; step = 0;
+    document.getElementById("brief").hidden = true; document.getElementById("brief-empty").hidden = false;
+    ask();
+  });
+  ask();
+})();
+</script>
