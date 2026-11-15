@@ -1,0 +1,184 @@
+<title>Report di automazione</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: documento a colonna singola, come il report che riceve il titolare. */
+:root {
+  --bg: #f6f7f5; --surface: #ffffff; --fg: #1c2420; --muted: #5d6a63; --line: #d9dfdb;
+  --accent: #0f6b4f; --accent-fg: #ffffff; --soft: #e8efeb; --good: #0f6b4f; --warn: #8a5a00; --warn-bg: #fff4d6;
+  --font-display: "Space Grotesk", system-ui, sans-serif; --font-body: "Inter", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131815; --surface: #1b221e; --fg: #e8eeea; --muted: #9aa8a0; --line: #2f3a34;
+    --accent: #4cc39a; --accent-fg: #0c1511; --soft: #26302b; --good: #4cc39a; --warn: #f0c35c; --warn-bg: #3a2f10;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131815; --surface: #1b221e; --fg: #e8eeea; --muted: #9aa8a0; --line: #2f3a34;
+  --accent: #4cc39a; --accent-fg: #0c1511; --soft: #26302b; --good: #4cc39a; --warn: #f0c35c; --warn-bg: #3a2f10;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.55;
+  padding-block: 32px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+h1 { font-family: var(--font-display); font-size: 30px; line-height: 1.12; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--font-display); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
+.meta { color: var(--muted); margin: 6px 0 0; }
+.review { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; background: var(--warn-bg); color: var(--warn); border-radius: 8px; padding: 10px 14px; font-size: 13.5px; }
+.review.ok { background: var(--soft); color: var(--good); }
+.review label { display: flex; align-items: center; gap: 6px; margin-left: auto; font-weight: 600; cursor: pointer; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px; min-width: 0; }
+.kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 560px) { .kpis { grid-template-columns: minmax(0, 1fr); } }
+.kpi { background: var(--soft); border-radius: 8px; padding: 12px 14px; }
+.kpi b { display: block; font-family: var(--font-display); font-size: 26px; line-height: 1.1; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.kpi span { color: var(--muted); font-size: 13px; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; min-width: 560px; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 9px 10px; border-top: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 500; font-size: 13px; border-top: 0; }
+td.num, th.num { text-align: right; }
+tr.pick td { background: var(--soft); }
+.pill { display: inline-block; font-size: 12px; font-weight: 600; background: var(--accent); color: var(--accent-fg); border-radius: 999px; padding: 1px 9px; margin-left: 6px; white-space: nowrap; }
+pre.mermaid { margin: 0; overflow-x: auto; }
+svg text { fill: var(--muted); font-size: 11px; font-family: var(--font-body); }
+svg .axis { stroke: var(--line); }
+svg .dot { fill: var(--accent); }
+svg .dot.alt { fill: var(--muted); }
+svg .lbl { fill: var(--fg); font-size: 12px; font-weight: 600; }
+.note { color: var(--muted); font-size: 13px; margin: 10px 0 0; }
+footer { color: var(--muted); font-size: 12.5px; }
+input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+
+<div class="wrap">
+  <header>
+    <h1>Report di automazione: registrazione fatture fornitori</h1>
+    <p class="meta">Studio di consulenza (esempio) · categoria Amministrazione e fatturazione · basato sull'intervista del passo 2</p>
+  </header>
+
+  <div class="review" id="review">
+    <span id="review-text">Bozza: il team deve rivederla prima dell'invio al cliente.</span>
+    <label for="rev"><input id="rev" type="checkbox"> Revisionato dal team</label>
+  </div>
+
+  <section class="panel">
+    <h2>In sintesi</h2>
+    <div class="kpis">
+      <div class="kpi"><b id="k-hours">-</b><span>ore di lavoro manuale all'anno</span></div>
+      <div class="kpi"><b id="k-gross">-</b><span>costo di quel lavoro, all'anno</span></div>
+      <div class="kpi"><b id="k-best">-</b><span>risparmio netto con l'opzione consigliata</span></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Il processo oggi</h2>
+    <pre class="mermaid">
+flowchart LR
+  A[Email con fattura PDF] --> B[Scarico il file]
+  B --> C[Ricopio fornitore, data, importo, IVA]
+  C --> D[Gestionale]
+  C --> E[Archivio in cartella]
+  D --> F{Errori?}
+  F -->|A fine mese, dal commercialista| C
+    </pre>
+    <p class="note">3 ore a settimana, una volta a settimana. Problemi: importi sbagliati, fatture registrate due volte, errori scoperti con un mese di ritardo.</p>
+  </section>
+
+  <section class="panel">
+    <h2>Tre opzioni</h2>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Opzione</th><th class="num">Costo iniziale</th><th class="num">Costo annuo</th><th class="num">Risparmio netto / anno</th><th class="num">Recupero</th></tr></thead>
+        <tbody id="opts"></tbody>
+      </table>
+    </div>
+    <p class="note">Cifre di esempio, da sostituire con preventivi reali. Lo strumento esistente copre 2 ore su 3 (nessuna integrazione su misura); il tool su misura le copre tutte e 3.</p>
+  </section>
+
+  <section class="panel">
+    <h2>Risparmio e impegno</h2>
+    <svg id="chart" viewBox="0 0 560 260" role="img" aria-label="Confronto tra impegno e risparmio netto annuo delle tre opzioni" width="100%"></svg>
+  </section>
+
+  <section class="panel">
+    <h2>Cosa consigliamo</h2>
+    <p id="reco" style="margin:0"></p>
+  </section>
+
+  <footer>Passo 3 di 4. Stessa formula di <code>services/api/src/savings.ts</code>: h × n × s × c − m.</footer>
+</div>
+
+<script>
+(function () {
+  var H = 3, N = 1, S = 48, C = 25;           // dal brief del passo 2
+  var fullGross = H * N * S * C;               // 3.600 €
+  var eur = new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
+  var num = new Intl.NumberFormat("it-IT", { maximumFractionDigits: 1 });
+
+  // effort: 0-5 scala qualitativa (tempo e complessità di avvio)
+  var OPTS = [
+    { name: "Non fare nulla", hours: 0, setup: 0, annual: 0, effort: 0 },
+    { name: "Strumento esistente", hours: 2, setup: 600, annual: 360, effort: 2, note: "Lettura automatica delle fatture inclusa nel gestionale o in un servizio a canone" },
+    { name: "Tool su misura", hours: 3, setup: 2500, annual: 600, effort: 4, note: "Lettura dei PDF, controllo dei doppioni, invio al gestionale" }
+  ];
+  OPTS.forEach(function (o) {
+    o.gross = o.hours * N * S * C;
+    o.net = o.gross - o.annual;
+    o.payback = o.net > 0 && o.setup > 0 ? Math.round((o.setup / o.net) * 12 * 10) / 10 : null;
+  });
+  // Consigliata: recupero più veloce tra quelle con risparmio netto positivo
+  var best = OPTS.filter(function (o) { return o.net > 0; })
+    .sort(function (a, b) { return a.payback - b.payback; })[0];
+
+  document.getElementById("k-hours").textContent = num.format(H * N * S) + " h";
+  document.getElementById("k-gross").textContent = eur.format(fullGross);
+  document.getElementById("k-best").textContent = eur.format(best.net);
+
+  document.getElementById("opts").innerHTML = OPTS.map(function (o) {
+    return '<tr' + (o === best ? ' class="pick"' : '') + '><td><strong>' + o.name + '</strong>' + (o === best ? '<span class="pill">Consigliata</span>' : '') +
+      (o.note ? '<br><span style="color:var(--muted);font-size:13px">' + o.note + '</span>' : '') + '</td>' +
+      '<td class="num">' + eur.format(o.setup) + '</td><td class="num">' + eur.format(o.annual) + '</td>' +
+      '<td class="num">' + eur.format(o.net) + '</td><td class="num">' + (o.payback === null ? '-' : num.format(o.payback) + ' mesi') + '</td></tr>';
+  }).join("");
+
+  // Grafico: x = impegno (0-5), y = risparmio netto (0-3.500 €)
+  var L = 56, R = 540, T = 16, B = 214, YMAX = 3500, XMAX = 5;
+  var x = function (v) { return L + (v / XMAX) * (R - L); };
+  var y = function (v) { return B - (v / YMAX) * (B - T); };
+  var g = "";
+  [0, 1000, 2000, 3000].forEach(function (t) {
+    g += '<line class="axis" x1="' + L + '" x2="' + R + '" y1="' + y(t) + '" y2="' + y(t) + '"/>' +
+         '<text x="' + (L - 8) + '" y="' + (y(t) + 4) + '" text-anchor="end">' + eur.format(t) + '</text>';
+  });
+  [["basso", 0.5], ["medio", 2.5], ["alto", 4.5]].forEach(function (t) {
+    g += '<text x="' + x(t[1]) + '" y="' + (B + 18) + '" text-anchor="middle">' + t[0] + '</text>';
+  });
+  g += '<text x="' + ((L + R) / 2) + '" y="' + (B + 38) + '" text-anchor="middle">Impegno per il cliente</text>';
+  OPTS.forEach(function (o) {
+    var cx = x(o.effort), cy = y(Math.max(o.net, 0));
+    var anchor = o.effort >= 4 ? "end" : "start", dx = o.effort >= 4 ? -12 : 12;
+    g += '<circle class="dot' + (o === best ? '' : ' alt') + '" cx="' + cx + '" cy="' + cy + '" r="7"/>' +
+         '<text class="lbl" x="' + (cx + dx) + '" y="' + (cy - 10) + '" text-anchor="' + anchor + '">' + o.name + '</text>';
+  });
+  document.getElementById("chart").innerHTML = g;
+
+  var custom = OPTS[2];
+  document.getElementById("reco").innerHTML =
+    'Partire con lo <strong>strumento esistente</strong>: si ripaga in circa ' + num.format(best.payback) + ' mesi e richiede poco impegno. ' +
+    'Il tool su misura porta ' + eur.format(custom.net - best.net) + ' in più all\'anno, ma si ripaga in ' + num.format(custom.payback) +
+    ' mesi: ha senso solo se i volumi crescono o se lo strumento esistente non si integra con il gestionale.';
+
+  var rev = document.getElementById("rev"), box = document.getElementById("review"), txt = document.getElementById("review-text");
+  rev.addEventListener("change", function () {
+    box.className = "review" + (rev.checked ? " ok" : "");
+    txt.textContent = rev.checked ? "Revisionato: pronto per l'invio al cliente." : "Bozza: il team deve rivederla prima dell'invio al cliente.";
+  });
+})();
+</script>
