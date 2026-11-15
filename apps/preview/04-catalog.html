@@ -1,0 +1,127 @@
+<title>Catalogo di esempi</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: ricerca in alto, griglia di categorie sotto; la categoria più vicina si evidenzia. */
+:root {
+  --bg: #f6f7f5; --surface: #ffffff; --fg: #1c2420; --muted: #5d6a63; --line: #d9dfdb;
+  --accent: #0f6b4f; --accent-fg: #ffffff; --soft: #e8efeb; --warn: #8a5a00; --warn-bg: #fff4d6;
+  --font-display: "Space Grotesk", system-ui, sans-serif; --font-body: "Inter", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131815; --surface: #1b221e; --fg: #e8eeea; --muted: #9aa8a0; --line: #2f3a34;
+    --accent: #4cc39a; --accent-fg: #0c1511; --soft: #26302b; --warn: #f0c35c; --warn-bg: #3a2f10; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131815; --surface: #1b221e; --fg: #e8eeea; --muted: #9aa8a0; --line: #2f3a34;
+  --accent: #4cc39a; --accent-fg: #0c1511; --soft: #26302b; --warn: #f0c35c; --warn-bg: #3a2f10; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.5;
+  padding-block: 32px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 980px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+h1 { font-family: var(--font-display); font-size: 28px; line-height: 1.15; margin: 0; text-wrap: balance; }
+.lead { color: var(--muted); margin: 6px 0 0; max-width: 64ch; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px; min-width: 0; }
+label { font-family: var(--font-display); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 8px; }
+textarea { font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; width: 100%; min-height: 76px; resize: vertical; }
+textarea:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+button.chip { font: inherit; font-size: 13px; background: var(--soft); color: var(--fg); border: 0; border-radius: 999px; padding: 4px 12px; cursor: pointer; }
+.result { margin-top: 14px; padding: 12px 14px; border-radius: 8px; background: var(--soft); }
+.result.none { background: var(--warn-bg); color: var(--warn); }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.card.hit { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+.card h3 { font-family: var(--font-display); font-size: 17px; margin: 0; }
+.card .k { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin: 0; }
+.card p { margin: 0; }
+.card .score { margin-top: auto; font-size: 12.5px; color: var(--accent); font-weight: 600; min-height: 1.4em; }
+footer { color: var(--muted); font-size: 12.5px; }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+
+<div class="wrap">
+  <header>
+    <h1>Catalogo di esempi</h1>
+    <p class="lead">Ogni richiesta viene assegnata a una categoria e collegata a un esempio da cui prendere spunto. Un esempio non è una soluzione pronta: il tool finale si progetta su misura.</p>
+  </header>
+
+  <section class="panel">
+    <label for="q">Descriva il problema con parole sue</label>
+    <textarea id="q" placeholder="Ad esempio: perdiamo ore a ricopiare le fatture dei fornitori nel gestionale"></textarea>
+    <div class="chips" id="chips"></div>
+    <div class="result" id="result" hidden aria-live="polite"></div>
+  </section>
+
+  <section class="cards" id="cards" aria-label="Categorie del catalogo"></section>
+
+  <footer>Passo 4 di 4. Il suggerimento usa parole chiave (nessun modello AI); nella versione reale sceglie il modello e conferma il team. Dati da <code>catalog/categories.json</code>.</footer>
+</div>
+
+<script>
+(function () {
+  var CATS = [{"id": "amministrazione-fatturazione", "nome": "Amministrazione e fatturazione", "problema": "Inserimento manuale di fatture, ricevute e scadenze", "esempio": "Lettura automatica dei documenti e invio al gestionale", "parole": ["fattura", "fatture", "fatturazione", "ricevut", "scadenz", "contabil", "iva", "registrare", "registrazione", "pagament", "commercialista", "nota spese"]}, {"id": "vendite-crm", "nome": "Vendite e CRM", "problema": "Contatti e preventivi sparsi tra email e fogli di calcolo", "esempio": "CRM semplice con promemoria e preventivi automatici", "parole": ["preventiv", "cliente", "clienti", "contatt", "lead", "offert", "trattativ", "crm", "venditor", "commerciale"]}, {"id": "ordini-magazzino", "nome": "Ordini e magazzino", "problema": "Aggiornamento a mano di scorte e ordini tra più canali", "esempio": "Sincronizzazione ordini, scorte e spedizioni", "parole": ["ordin", "magazzin", "scorte", "giacenz", "spedizion", "fornitor", "inventar", "e-commerce", "negozio online"]}, {"id": "assistenza-clienti", "nome": "Assistenza clienti", "problema": "Domande ripetitive via email e telefono", "esempio": "Risposte guidate e smistamento automatico delle richieste", "parole": ["assistenza", "supporto", "reclam", "richieste", "domande", "ticket", "telefon", "rispondere", "faq", "email ripetit"]}, {"id": "prenotazioni-appuntamenti", "nome": "Prenotazioni e appuntamenti", "problema": "Agenda gestita a mano, disdette e no-show", "esempio": "Prenotazione online con conferme e promemoria", "parole": ["prenotazion", "appuntament", "agenda", "disdett", "no-show", "calendario", "tavol", "visite"]}, {"id": "report-controllo", "nome": "Report e controllo", "problema": "Dati da più fonti riuniti a mano ogni mese", "esempio": "Cruscotto con dati aggiornati in automatico", "parole": ["report", "cruscotto", "dashboard", "excel", "fogli di calcolo", "dati", "kpi", "mensile", "controllo di gestione", "statistic"]}, {"id": "personale-presenze", "nome": "Personale e presenze", "problema": "Fogli presenze e turni compilati a mano", "esempio": "Raccolta presenze e turni con esportazione per il consulente", "parole": ["present", "turni", "ferie", "dipendent", "personale", "cartellin", "buste paga", "ore lavorate", "timbratur"]}];
+  var SAMPLES = [
+    "Ricopiamo a mano le fatture dei fornitori nel gestionale",
+    "I preventivi sono sparsi tra email e fogli Excel",
+    "Le disdette degli appuntamenti ci fanno perdere clienti",
+    "Ogni mese riuniamo i dati a mano in un report",
+    "Rispondiamo sempre alle stesse domande via email"
+  ];
+
+  var q = document.getElementById("q"), cards = document.getElementById("cards"), result = document.getElementById("result");
+  function norm(s) { return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, ""); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+
+  cards.innerHTML = CATS.map(function (c) {
+    return '<article class="card" id="c-' + c.id + '"><h3>' + esc(c.nome) + '</h3>' +
+      '<p class="k">Problema tipico</p><p>' + esc(c.problema) + '</p>' +
+      '<p class="k">Esempio da cui prendere spunto</p><p>' + esc(c.esempio) + '</p>' +
+      '<p class="score"></p></article>';
+  }).join("");
+
+  document.getElementById("chips").innerHTML = SAMPLES.map(function (s, i) {
+    return '<button type="button" class="chip" data-i="' + i + '">' + esc(s) + '</button>';
+  }).join("");
+  document.getElementById("chips").addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    q.value = SAMPLES[+b.dataset.i]; run();
+  });
+
+  function score(text) {
+    var t = norm(text);
+    return CATS.map(function (c) {
+      var hits = c.parole.filter(function (w) { return t.indexOf(norm(w)) !== -1; });
+      return { c: c, hits: hits };
+    }).filter(function (r) { return r.hits.length; })
+      .sort(function (a, b) { return b.hits.length - a.hits.length; });
+  }
+
+  function run() {
+    var text = q.value.trim();
+    document.querySelectorAll(".card").forEach(function (el) { el.classList.remove("hit"); el.querySelector(".score").textContent = ""; });
+    if (!text) { result.hidden = true; return; }
+    var r = score(text); result.hidden = false;
+    if (!r.length) {
+      result.className = "result none";
+      result.innerHTML = "Nessuna categoria riconosciuta: la richiesta resta <strong>da classificare</strong> e la assegna il team.";
+      return;
+    }
+    result.className = "result";
+    var top = r[0];
+    result.innerHTML = "Categoria più vicina: <strong>" + esc(top.c.nome) + "</strong>" +
+      (r[1] ? ". Anche: " + r.slice(1, 3).map(function (x) { return esc(x.c.nome); }).join(", ") : "") + ".";
+    r.forEach(function (x, i) {
+      var el = document.getElementById("c-" + x.c.id);
+      el.querySelector(".score").textContent = "Parole trovate: " + x.hits.join(", ");
+      if (i === 0) el.classList.add("hit");
+    });
+  }
+  q.addEventListener("input", run);
+})();
+</script>
