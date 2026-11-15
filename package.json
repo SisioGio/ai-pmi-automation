@@ -1,0 +1,10 @@
+{
+  "name": "ai-pmi-automation",
+  "private": true,
+  "workspaces": ["infra", "services/api"],
+  "scripts": {
+    "test": "npm test -w services/api",
+    "typecheck": "npm run typecheck -w services/api && npm run build -w infra",
+    "synth": "npm run synth -w infra"
+  }
+}

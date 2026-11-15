@@ -1,0 +1,25 @@
+name: Deploy
+on:
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: Stage (dev | prod)
+        default: dev
+permissions:
+  id-token: write   # OIDC verso AWS, nessuna chiave salvata
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.stage }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: eu-central-1
+      - run: npm ci
+      - run: npx cdk deploy --all --require-approval never -c stage=${{ inputs.stage }}
+        working-directory: infra

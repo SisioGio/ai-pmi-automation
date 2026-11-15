@@ -20,4 +20,15 @@ Vedi [docs/mvp-backlog.md](docs/mvp-backlog.md). Obiettivo: i titolari pagano pe
 
 ## Stato
 
-Stack tecnologico non ancora scelto: l'ipotesi tecnica del piano è da verificare. Vedi [docs/decisions/](docs/decisions/).
+Stack: AWS (CDK TypeScript, Cognito, API Gateway + Lambda, DynamoDB, S3, Bedrock). Vedi [docs/decisions/0001-stack.md](docs/decisions/0001-stack.md).
+
+## Sviluppo
+
+```bash
+npm install
+npm test            # test del calcolo del risparmio
+npm run typecheck
+cd infra && npx cdk synth -c stage=dev
+```
+
+Deploy: workflow GitHub Actions `Deploy` (manuale). Richiede il secret `AWS_DEPLOY_ROLE_ARN` (ruolo IAM con trust OIDC verso questo repo) in ogni GitHub Environment (`dev`, `prod`).
