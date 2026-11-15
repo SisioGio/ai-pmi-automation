@@ -123,6 +123,7 @@ export class PlatformStack extends cdk.Stack {
       [apigw.HttpMethod.GET, "/interviews/{id}"],
       [apigw.HttpMethod.POST, "/interviews/{id}/answers"],
       [apigw.HttpMethod.POST, "/interviews/{id}/finalize"],
+      [apigw.HttpMethod.POST, "/interviews/{id}/estimate"],
     ] as const) {
       api.addRoutes({ path: route, methods: [method], integration: interviewsInt, authorizer });
     }

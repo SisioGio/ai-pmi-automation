@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
+import { estimateFromBrief, type EstimateParams } from "./estimate.js";
 import { buildBrief, nextQuestion } from "./interview.js";
 import type { LlmProvider } from "./llm/provider.js";
 import { OPENING_QUESTION } from "./prompts.js";
@@ -73,11 +74,19 @@ export function createInterviewsApi(deps: { llm: LlmProvider; store: InterviewSt
         return json(200, record.brief);
       }
 
+      if (event.routeKey === "POST /interviews/{id}/estimate") {
+        if (!record.brief) return json(409, { error: "Genera prima il brief" });
+        const params = JSON.parse(event.body ?? "{}") as Partial<EstimateParams>;
+        if (typeof params.hourlyCost !== "number") return json(400, { error: "hourlyCost obbligatorio" });
+        return json(200, estimateFromBrief(record.brief, params as EstimateParams));
+      }
+
       return json(404, { error: "Rotta non trovata" });
     } catch (err) {
       console.error("interviews error", err);
       // Il messaggio interno (es. risposta del modello) non va al client
-      const isBadJson = err instanceof SyntaxError && event.routeKey.endsWith("/answers");
+      if (err instanceof RangeError) return json(400, { error: err.message }); // valori numerici non validi
+      const isBadJson = err instanceof SyntaxError && /\/(answers|estimate)$/.test(event.routeKey);
       return isBadJson ? json(400, { error: "Corpo non valido" }) : json(500, { error: "Errore interno" });
     }
   };

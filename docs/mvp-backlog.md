@@ -4,7 +4,7 @@
 - [x] Intervista guidata testuale che produce un brief strutturato (API pronta, da provare su Bedrock reale)
 - [ ] Intervista vocale (Amazon Transcribe)
 - [x] Classificazione in categorie (collegamento a esempi simili ancora da fare)
-- [ ] Calcolo del risparmio con ore e costi del cliente
+- [x] Calcolo del risparmio con ore e costi del cliente, anche automatico dal brief (`/estimate`)
 - [ ] Report PDF con mappa dei processi e interventi proposti
 - [ ] Revisione manuale del team prima dell'invio
 

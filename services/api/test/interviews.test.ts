@@ -109,4 +109,35 @@ describe("interviews API", () => {
     const created = parse(await api(event("POST /interviews", { sub: "u1" })));
     expect(status(await api(event("POST /interviews/{id}/finalize", { sub: "u1", id: created.id })))).toBe(409);
   });
+
+  it("stima il risparmio dal brief, saltando i processi incompleti", async () => {
+    const { api } = setup(
+      '{"question":"Ok","done":false}',
+      JSON.stringify({
+        summary: "s", categoryId: "amministrazione-fatturazione", missingInfo: [],
+        processes: [
+          { name: "Fatture", steps: [], tools: [], hoursPerRun: 3, runsPerWeek: 1, painPoints: [] },
+          { name: "Report", steps: [], tools: [], hoursPerRun: null, runsPerWeek: 1, painPoints: [] },
+        ],
+      }),
+    );
+    const { id } = parse(await api(event("POST /interviews", { sub: "u1" })));
+    const est = (body: unknown, sub = "u1") => api(event("POST /interviews/{id}/estimate", { sub, id, body }));
+
+    expect(status(await est({ hourlyCost: 25 }))).toBe(409); // brief non ancora generato
+
+    await api(event("POST /interviews/{id}/answers", { sub: "u1", id, body: { text: "Le fatture" } }));
+    await api(event("POST /interviews/{id}/finalize", { sub: "u1", id }));
+
+    const res = parse(await est({ hourlyCost: 25, annualMaintenance: 600, projectPrice: 2500 }));
+    expect(res.estimatedProcesses).toBe(1);
+    expect(res.skippedProcesses).toBe(1);
+    expect(res.totalGrossAnnualSavings).toBe(3600);
+    expect(res.processes[0].savings).toMatchObject({ netAnnualSavings: 3000, paybackMonths: 10 });
+    expect(res.processes[1]).toMatchObject({ savings: null, missing: ["ore per ripetizione"] });
+
+    expect(status(await est({}))).toBe(400); // costo orario mancante
+    expect(status(await est({ hourlyCost: -5 }))).toBe(400); // valore non valido
+    expect(status(await est({ hourlyCost: 25 }, "u2"))).toBe(404); // altro utente
+  });
 });

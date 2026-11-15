@@ -18,7 +18,7 @@ Un'unica offerta in quattro fasi, gestita dallo stesso team, così il cliente no
 | --- | --- | --- |
 | 1. Scoprire | Intervista, mappa dei processi, analisi delle inefficienze, stima del risparmio | Report con il potenziale di automazione |
 | 2. Decidere | Esempi simili, tre opzioni per ogni intervento, matrice risparmio e sforzo | Piano con priorità e prezzi |
-| 3. Costruire | Flussi di automazione, agenti AI, integrazioni con i sistemi esistenti, interfacce su misura | Sistema funzionante in azienda |
+| 3. Costruire | Flussi di automazione, agenti AI, integrazioni con i sistemi del cliente, interfacce su misura | Sistema funzionante in azienda |
 | 4. Gestire | Monitoraggio, aggiornamenti, miglioramenti e supporto (pacchetti Base e Premium) | Costi di manutenzione prevedibili e risparmio misurato |
 
 **Tecnologia**
@@ -27,7 +27,7 @@ Un'unica offerta in quattro fasi, gestita dallo stesso team, così il cliente no
 - **LLM come provider:** collegamento a più provider di modelli, intercambiabili. Per ogni flusso si sceglie in base a riservatezza, qualità e costo, senza dipendere da un solo fornitore.
 - **Flussi di automazione:** passaggi collegati tra email, gestionali, fogli di calcolo, documenti e API, con un'approvazione umana dove serve.
 - **Agenti AI** per compiti ripetitivi come lettura di documenti, risposte, smistamento e report.
-- **Integrazioni e interfacce su misura** quando gli strumenti esistenti non bastano.
+- **Integrazioni e interfacce su misura**, progettate sui sistemi e sui processi del cliente.
 - **Sicurezza e controllo:** accessi per ruolo, registro delle attività e backup.
 
 **Provider LLM esterni: dati sotto controllo e conformità**
@@ -80,11 +80,11 @@ La piattaforma è il prodotto principale: guida l'intervista, analizza i process
 | Pannello interno | Il nostro team rivede, stima le ore e prepara il preventivo | Proposta pronta da inviare |
 | Configurazione | Domande, categorie, formule e marchio modificabili senza programmare | Stesso motore per più settori e per partner |
 
-**Cosa decide il cliente.** Per ogni processo vede tre opzioni: non fare nulla, usare uno strumento esistente oppure far costruire un tool su misura. Ognuna ha costo, risparmio e tempo di recupero. La matrice indica cosa conviene fare per primo.
+**Cosa decide il cliente.** Per ogni processo vede tre opzioni, tutte progettate sulla sua azienda: non fare nulla, una soluzione essenziale che automatizza la parte più pesante del lavoro, oppure una soluzione completa. Ognuna ha costo, risparmio e tempo di recupero. La matrice indica cosa conviene fare per primo.
 
 &#91;embedded content: matrice di decisione · risparmio contro sforzo\]
 
-La piattaforma dice anche quando non serve un tool su misura. È un vantaggio commerciale, perché rende credibile la proposta quando invece lo consiglia.
+La piattaforma dice anche quando conviene partire da una soluzione più piccola, o non intervenire. È un vantaggio commerciale, perché rende credibile la proposta quando consiglia la soluzione completa.
 
 **Ipotesi tecnica, da verificare**
 

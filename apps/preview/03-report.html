@@ -92,14 +92,14 @@ flowchart LR
   </section>
 
   <section class="panel">
-    <h2>Tre opzioni</h2>
+    <h2>Tre opzioni, tutte su misura</h2>
     <div class="scroll">
       <table>
         <thead><tr><th>Opzione</th><th class="num">Costo iniziale</th><th class="num">Costo annuo</th><th class="num">Risparmio netto / anno</th><th class="num">Recupero</th></tr></thead>
         <tbody id="opts"></tbody>
       </table>
     </div>
-    <p class="note">Cifre di esempio, da sostituire con preventivi reali. Lo strumento esistente copre 2 ore su 3 (nessuna integrazione su misura); il tool su misura le copre tutte e 3.</p>
+    <p class="note">Cifre di esempio, da sostituire con preventivi reali. La soluzione essenziale copre 2 ore su 3 e si realizza in una prima fase; la soluzione completa le copre tutte e 3 e si può aggiungere in una seconda fase.</p>
   </section>
 
   <section class="panel">
@@ -125,8 +125,8 @@ flowchart LR
   // effort: 0-5 scala qualitativa (tempo e complessità di avvio)
   var OPTS = [
     { name: "Non fare nulla", hours: 0, setup: 0, annual: 0, effort: 0 },
-    { name: "Strumento esistente", hours: 2, setup: 600, annual: 360, effort: 2, note: "Lettura automatica delle fatture inclusa nel gestionale o in un servizio a canone" },
-    { name: "Tool su misura", hours: 3, setup: 2500, annual: 600, effort: 4, note: "Lettura dei PDF, controllo dei doppioni, invio al gestionale" }
+    { name: "Soluzione essenziale", hours: 2, setup: 1200, annual: 360, effort: 2, note: "Lettura automatica dei PDF e registrazione nel gestionale, con controllo da parte di una persona" },
+    { name: "Soluzione completa", hours: 3, setup: 2500, annual: 600, effort: 4, note: "Come l'essenziale, più controllo dei doppioni, verifica degli importi, archiviazione e report mensile" }
   ];
   OPTS.forEach(function (o) {
     o.gross = o.hours * N * S * C;
@@ -171,9 +171,9 @@ flowchart LR
 
   var custom = OPTS[2];
   document.getElementById("reco").innerHTML =
-    'Partire con lo <strong>strumento esistente</strong>: si ripaga in circa ' + num.format(best.payback) + ' mesi e richiede poco impegno. ' +
-    'Il tool su misura porta ' + eur.format(custom.net - best.net) + ' in più all\'anno, ma si ripaga in ' + num.format(custom.payback) +
-    ' mesi: ha senso solo se i volumi crescono o se lo strumento esistente non si integra con il gestionale.';
+    'Partire dalla <strong>soluzione essenziale</strong>: si ripaga in circa ' + num.format(best.payback) + ' mesi e richiede poco impegno. ' +
+    'La soluzione completa porta ' + eur.format(custom.net - best.net) + ' in più all\'anno, ma si ripaga in ' + num.format(custom.payback) +
+    ' mesi: si aggiunge in una seconda fase se i volumi crescono o se gli errori restano un problema.';
 
   var rev = document.getElementById("rev"), box = document.getElementById("review"), txt = document.getElementById("review-text");
   rev.addEventListener("change", function () {
